@@ -226,6 +226,8 @@ jobs:
       - checkout
       - attach_workspace:
           at: ~/
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Run migrations
           command: |
@@ -316,6 +318,36 @@ jobs:
       - revert-migrations
       # Here's where you will add some code to rollback on failure  
 
+  deploy-backend:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["1d:45:27:5d:09:03:42:8c:50:94:11:95:53:43:a2:8b"]
+      - attach_workspace:
+          at: ~/
+      # Dependencies installation
+      - install_nodejs
+      - install_awscli
+      - install_ansible
+      - run:
+          name: Deploy backend
+          command: |
+            cd backend
+            npm i
+            npm run build
+            cd ..
+            # Zip the directory
+            tar -C backend -czvf artifact.tar.gz .
+            cd .circleci/ansible
+            echo "Contents  of the inventory.txt file is -------"
+            cat inventory.txt
+            ansible-playbook -i inventory.txt deploy-backend.yml
+      - destroy-environment
+      - revert-migrations
+      # Here's where you will add some code to rollback on failure  
+
   smoke-test:
     docker:
       - image: cimg/base:stable
@@ -355,7 +387,6 @@ jobs:
               fi
       - destroy-environment
       - revert-migrations
-            # your code here
 #       # Here's where you will add some code to rollback on failure  
 
 #   cloudfront-update:
