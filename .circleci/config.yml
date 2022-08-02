@@ -326,6 +326,17 @@ jobs:
       - install_nodejs
       - install_awscli
       - run:
+          name: Frontend smoke test.
+          command: |
+              FRONTEND_WEBSITE=http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website.${AWS_DEFAULT_REGION}.amazonaws.com
+              echo $FRONTEND_WEBSITE
+              if curl -s $FRONTEND_WEBSITE | grep "Welcome"
+              then
+                exit 0
+              else
+                exit 1
+              fi
+      - run:
           name: Backend smoke test.
           command: |
               BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
@@ -342,17 +353,7 @@ jobs:
               else
                 exit 1
               fi
-      - run:
-          name: Frontend smoke test.
-          command: |
-              FRONTEND_WEBSITE=http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website.${AWS_DEFAULT_REGION}.amazonaws.com
-              echo $FRONTEND_WEBSITE
-              if curl -s $FRONTEND_WEBSITE | grep "Welcome"
-              then
-                exit 1
-              else
-                exit 1
-              fi
+      
       - destroy-environment
       - revert-migrations
       # Here's where you will add some code to rollback on failure  
