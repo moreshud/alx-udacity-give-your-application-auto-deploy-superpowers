@@ -38,6 +38,8 @@
     cd ~/backend-app/dist
     cd ../ 
     npm install
+    npm build
+
 
     sudo pm2 stop default
     sudo pm2 start npm -- start
