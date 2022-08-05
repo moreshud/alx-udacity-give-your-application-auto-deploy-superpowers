@@ -31,7 +31,7 @@ commands:
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
             SUCCESS = $(curl --insecure "https://kvdb.io/QkcPftxsrFg2c3fNNX9mYg/migration_<<parameters.workflow_id>>")
-            if [ $SUCCESS -eq 1 ]; 
+            if (( $SUCCESS == 1 )); 
             then
               cd ~/project/backend
               npm install
@@ -420,12 +420,12 @@ jobs:
                 --query "StackSummaries[*].StackName" \
                 --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
             echo Stack names: "${STACKS[@]}"
-            export OldWorkflowID=$(curl --insecure https://kvdb.io/33GxcCpH7rHocPuWALvF32/old_workflow_id)
+            export OldWorkflowID=$(curl --insecure https://kvdb.io/QkcPftxsrFg2c3fNNX9mYg/old_workflow_id)
             echo Old Workflow ID: $OldWorkflowID
       - run:
           name: Remove old stacks and files
           command: |
-            export OldWorkflowID=$(curl --insecure https://kvdb.io/33GxcCpH7rHocPuWALvF32/old_workflow_id)
+            export OldWorkflowID=$(curl --insecure https://kvdb.io/QkcPftxsrFg2c3fNNX9mYg/old_workflow_id)
             echo Old Workflow ID: $OldWorkflowID 
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
