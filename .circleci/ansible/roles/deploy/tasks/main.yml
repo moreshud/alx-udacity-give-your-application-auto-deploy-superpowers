@@ -25,7 +25,7 @@
 
 - name: 'Unarchive backend files'
   unarchive:
-    src: artifact.tar.gz
+    src: "~/project/build/artifact.tar.gz"
     dest: ~/backend-app
 
 - name: 'Installing Node Dependencies'
@@ -37,7 +37,7 @@
   shell: |
     cd ~/backend-app/dist
     cd ../
-    
+
     npm install    
     npm run build
 
