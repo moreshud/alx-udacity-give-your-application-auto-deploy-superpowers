@@ -177,7 +177,7 @@ jobs:
               --template-file .circleci/files/backend.yml \
               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
-              --tags project=udapeople
+              --tags project=udapeople-backend
  
       - run:
           name: Ensure front-end infrastructure exist
@@ -186,16 +186,24 @@ jobs:
               --template-file .circleci/files/frontend.yml \
               --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
-              --tags project=udapeople
+              --tags project=udapeople-frontend
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            echo "[all]" > ~/project/.circleci/ansible/inventory.txt
+            # Your code here
+            cd .circleci/ansible
+            cat inventory.txt
             aws ec2 describe-instances \
-              --filter "Name=instance-state-name,Values=running" \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --output text >> ~/project/.circleci/ansible/inventory.txt
-            cat ~/project/.circleci/ansible/inventory.txt
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text --filter Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7} >> inventory.txt
+            cat inventory.txt
+
+            # echo "[all]" > ~/project/.circleci/ansible/inventory.txt
+            # aws ec2 describe-instances \
+            #   --filter "Name=instance-state-name,Values=running" \
+            #   --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            #   --output text >> ~/project/.circleci/ansible/inventory.txt
+            # cat ~/project/.circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -264,9 +272,9 @@ jobs:
       - attach_workspace:
           at: ~/
       # Dependencies installation
-      - install_nodejs
-      - install_awscli
-      - install_ansible
+      # - install_nodejs
+      # - install_awscli
+      # - install_ansible
       - run:
           name: Get backend url
           command: |
