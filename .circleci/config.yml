@@ -68,6 +68,7 @@ commands:
           command: |
             curl -fsSL https://deb.nodesource.com/setup_13.x | sudo -E bash -
             sudo apt install -y nodejs
+
 jobs:
   build-frontend:
     docker:
@@ -139,6 +140,7 @@ jobs:
           command: |
             cd frontend
             npm install
+            # npm install oauth-sign@^0.9.0
             npm audit fix --audit-level=critical --force
             npm audit --audit-level=critical
 
@@ -223,8 +225,8 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - attach_workspace:
-          at: ~/
+      # - attach_workspace:
+      #     at: ~/
       - restore_cache:
           keys: [backend-build]
       - run:
