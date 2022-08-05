@@ -216,11 +216,12 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["1d:45:27:5d:09:03:42:8c:50:94:11:95:53:43:a2:8b"]
+          fingerprints: 
+            - "1d:45:27:5d:09:03:42:8c:50:94:11:95:53:43:a2:8b"
       - attach_workspace:
           at: ~/
       - install_ansible
-      - install_awscli # added to be removed
+      - install_awscli
       - run:
           name: Run Playbook and Configure server
           command: |
@@ -238,8 +239,8 @@ jobs:
       - checkout
       # - attach_workspace:
       #     at: ~/
-      - restore_cache:
-          keys: [backend-build]
+      # - restore_cache:
+      #     keys: [backend-build]
       - run:
           name: Run migrations
           command: |
@@ -268,20 +269,27 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["1d:45:27:5d:09:03:42:8c:50:94:11:95:53:43:a2:8b"]
+          fingerprints: 
+            - "1d:45:27:5d:09:03:42:8c:50:94:11:95:53:43:a2:8b"
       - attach_workspace:
           at: ~/
       # Dependencies installation
-      # - install_nodejs
-      # - install_awscli
-      # - install_ansible
+      - install_nodejs
+      - install_awscli
+      - install_ansible
       - run:
           name: Get backend url
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
-              --filter "Name=instance-state-name,Values=running" \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --output text)
+              --filter Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7} \
+              --output text 
+            )
+            # export BACKEND_IP=$(aws ec2 describe-instances \
+            #   --filter "Name=instance-state-name,Values=running" \
+            #   --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            #   --output text)
+
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
@@ -306,7 +314,8 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["1d:45:27:5d:09:03:42:8c:50:94:11:95:53:43:a2:8b"]
+          fingerprints: 
+            - "1d:45:27:5d:09:03:42:8c:50:94:11:95:53:43:a2:8b"
       - attach_workspace:
           at: ~/
       # Dependencies installation
