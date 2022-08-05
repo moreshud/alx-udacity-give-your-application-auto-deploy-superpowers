@@ -40,8 +40,7 @@
     npm install
     npm build
 
-
-    sudo pm2 stop default
+    sudo pm2 delete all
     sudo pm2 start npm -- start
     sudo pm2 start main.js
   register: execute_node
