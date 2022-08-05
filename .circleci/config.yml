@@ -30,13 +30,12 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS = 1
+            SUCCESS = $(curl --insecure "https://kvdb.io/QkcPftxsrFg2c3fNNX9mYg/migration_<<parameters.workflow_id>>")
             if(( $SUCCESS==1 )); 
             then
-            #  cd ~/project/backend
-            #  npm install
-            #  Add revert code here. You can find this in the Getting Started section.
-              exit 1
+              cd ~/project/backend
+              npm install
+              npm run migrations:revert
             fi
             
   install_ansible:
@@ -383,28 +382,28 @@ jobs:
       - revert-migrations
       # Here's where you will add some code to rollback on failure  
 
-  # cloudfront-update:
-  #   docker:
-  #     - image: amazon/aws-cli
-  #   steps:
-  #     - checkout
-  #     - run:
-  #         name: Install dependencies & save old workflow id to kvdb.io
-  #         command: |
-  #           export OLD_WORKFLOW_ID=$(aws cloudformation \
-  #           list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-  #           --no-paginate --output text)
-  #           echo "Old Wokflow ID: $OLD_WORKFLOW_ID"
-  #           curl https://kvdb.io/QkcPftxsrFg2c3fNNX9mYg/old_workflow_id -d "${OLD_WORKFLOW_ID}"
-  #     - run:
-  #         name: Update cloudfront distribution
-  #         command: |
-  #           aws cloudformation deploy \
-  #           --template-file .circleci/files/cloudfront.yml \
-  #           --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
-  #           --stack-name InitialStack
-  #     - destroy-environment
-  #     - revert-migrations
+  cloudfront-update:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies & save old workflow id to kvdb.io
+          command: |
+            export OLD_WORKFLOW_ID=$(aws cloudformation \
+            list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+            --no-paginate --output text)
+            echo "Old Wokflow ID: $OLD_WORKFLOW_ID"
+            curl https://kvdb.io/QkcPftxsrFg2c3fNNX9mYg/old_workflow_id -d "${OLD_WORKFLOW_ID}"
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            aws cloudformation deploy \
+            --template-file .circleci/files/cloudfront.yml \
+            --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+            --stack-name InitialStack
+      - destroy-environment
+      - revert-migrations
       # Here's where you will add some code to rollback on failure  
 
 # cleanup:
@@ -455,7 +454,7 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
+      - cloudfront-update:
+          requires: [smoke-test]
       # - cleanup:
       #     requires: [cloudfront-update]
