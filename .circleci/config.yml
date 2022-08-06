@@ -236,6 +236,10 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - run:
+          name: Install Dependecies
+          command: sudo apt install -y tar gzip curl
+      - install_awscli 
       - attach_workspace:
           at: ~/
       - restore_cache:
