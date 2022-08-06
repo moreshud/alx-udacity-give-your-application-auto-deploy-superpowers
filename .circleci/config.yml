@@ -236,10 +236,10 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      # - attach_workspace:
-      #     at: ~/
-      # - restore_cache:
-      #     keys: [backend-build]
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Run migrations
           command: |
@@ -253,7 +253,6 @@ jobs:
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
               curl https://kvdb.io/BmQgWZBCvnByRLYf7akgWc/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
-
             fi
       - destroy-environment
       - revert-migrations
