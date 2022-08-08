@@ -420,11 +420,9 @@ jobs:
 
             # Fetching the old workflowID
             export OldWorkflowID=$(aws cloudformation \
-              list-exports --query "Exports[?Name=='WorkflowID'].Value" \
-              --no-paginate --output text)
+              list-exports --query "Exports[?Name=='WorkflowID'].Value" --no-paginate --output text)
             echo OldWorkflowID: "${OldWorkflowID:0:7}"
             echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
-
       - run:
           name: Destroy the previous S3 bucket and CloudFormation stack.
           command: |
