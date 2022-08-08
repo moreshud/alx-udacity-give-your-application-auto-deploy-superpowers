@@ -411,19 +411,28 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Fetch Oldstack Workflow ID
+          name: Fetch Oldstack and its Workflow ID
           command: |
             export STACKS=($(aws cloudformation list-stacks \
                 --query "StackSummaries[*].StackName" \
                 --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
             echo Stack names: "${STACKS[@]}"
-            export OldWorkflowID=$(curl --insecure https://kvdb.io/YJpE9w6jJySXXaFoj3eLZN/old_workflow_id)
-            echo Old Workflow ID: $OldWorkflowID
+
+            export OldWorkID=$(aws cloudformation \
+              list-exports --query "Exports[?Name=='WorkID'].Value" \
+              --no-paginate --output text)
+            echo OldWorkID: "${OldWorkID}"
+            echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
+
+            # export OldWorkflowID=$(curl --insecure https://kvdb.io/YJpE9w6jJySXXaFoj3eLZN/old_workflow_id)
+            # echo Old Workflow ID: $OldWorkflowID
       - run:
           name: Destroy the previous S3 bucket and CloudFormation stack.
           command: |
-            export OldWorkflowID=$(curl --insecure https://kvdb.io/YJpE9w6jJySXXaFoj3eLZN/old_workflow_id)
-            echo Old Workflow ID: $OldWorkflowID 
+            # export OldWorkflowID=$(curl --insecure https://kvdb.io/YJpE9w6jJySXXaFoj3eLZN/old_workflow_id)
+            echo Old Workflow ID: $OldWorkflowID
+            echo Stack names: "${STACKS[@]}"
+
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
               aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
