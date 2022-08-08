@@ -388,9 +388,9 @@ jobs:
             # echo "Old Wokflow ID: $OLD_WORKFLOW_ID"
             # curl https://kvdb.io/YJpE9w6jJySXXaFoj3eLZN/old_workflow_id -d "${OLD_WORKFLOW_ID}"
 
-            export OLD_WORKFLOW_ID=$(aws cloudformation list-exports --query "Exports[?Name==\`WorkID\`].Value" \
-              --no-paginate --output text) >> ~/project/OldWorkflowID.txt
-            echo "Old WorkflowID: $OLD_WORKFLOW_ID" 
+            # export OLD_WORKFLOW_ID=$(aws cloudformation list-exports --query "Exports[?Name==\`WorkID\`].Value" \
+            #   --no-paginate --output text) >> ~/project/OldWorkflowID.txt
+            # echo "Old WorkflowID: $OLD_WORKFLOW_ID" 
       - run:
           name: Update cloudfront distribution
           command: |
@@ -413,34 +413,39 @@ jobs:
       - run:
           name: Fetch Oldstack and its Workflow ID
           command: |
-            # Fetching the oldstack names
-            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
-                --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
-            echo Stack names: "${STACKS[@]}"
+            # Fetch old workID and circle workflow id
+            export OldWorkID=$(aws cloudformation \
+              list-exports --query "Exports[?Name=='WorkID'].Value" \
+              --no-paginate --output text)
+            echo OldWorkID: "${OldWorkID}"
+            echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
 
-            # Fetching the old workflowID
-            # export OldWorkflowID=$(aws cloudformation \
-            #   list-exports --query "Exports[?Name=='WorkID'].Value" --no-paginate --output text)
-            # echo OldWorkflowID: "${OldWorkflowID:0:7}"
-            # echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
+            # Fetch the stack names          
+            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+              --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
+            echo Stack names: "${STACKS[@]}" 
       - run:
           name: Destroy the previous S3 bucket and CloudFormation stack.
           command: |
-            
-            export OldWorkflowID=$(cat ~/project/OldWorkflowID.txt)
-            echo OldWorkflowID: "${OldWorkflowID}"     
-            echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
+            echo OldBucketID: "$OldWorkID"
+            echo Stack names: "${STACKS[@]}"
 
-            # if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
-            if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
-            then
-              echo "-------------------- Start Cleanup: Deleting s3 & stack in progress --------------------"
-              aws s3 rm "s3://udapeople-${OldWorkflowID:0:7}" --recursive
-              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID:0:7}"
-              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID:0:7}"
-            else
-              echo "-------------------- Cleanup Failed --------------------"
-            fi
+            if [[ "${CIRCLE_WORKFLOW_ID:0:7}" =~ "${OldWorkID}" ]]
+              then
+                aws s3 rm "s3://udapeople-${OldWorkID}" --recursive
+                aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkID}"
+                aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkID}"
+              fi
+
+            # if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
+            # then
+            #   echo "-------------------- Start Cleanup: Deleting s3 & stack in progress --------------------"
+            #   aws s3 rm "s3://udapeople-${OldWorkflowID:0:7}" --recursive
+            #   aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID:0:7}"
+            #   aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID:0:7}"
+            # else
+            #   echo "-------------------- Cleanup Failed --------------------"
+            # fi
             
 
 workflows:
