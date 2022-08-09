@@ -432,8 +432,7 @@ jobs:
               --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
             echo Stack names: "${STACKS[@]}"
     
-            # if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${oldWorkflowID}" ]]
-            if [[ "${STACKS[@]}" =~ "${oldWorkflowID}" ]]
+            if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${oldWorkflowID}" ]]
             then
               echo "-------------------- Start Cleanup: Deleting S3 & its stack in progress 0%... --------------------"
               aws s3 rm "s3://udapeople-${oldWorkflowID}" --recursive
