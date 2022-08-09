@@ -387,6 +387,7 @@ jobs:
       - run:
           name: Get old WorkflowID and persist it
           command: |
+            pwd
             aws cloudformation list-exports \
               --query "Exports[?Name==\`WorkflowID\`].Value" \
               --no-paginate --output text >> ~/project/OldWorkflowID.txt
@@ -400,11 +401,11 @@ jobs:
               --stack-name InitialStack
 
             echo Current Workflow ID: "${CIRCLE_WORKFLOW_ID:0:7}"
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/oldWorkflowID.txt
-      - destroy-environment
+      # - persist_to_workspace:
+      #     root: ~/
+      #     paths:
+      #       - project/oldWorkflowID.txt
+      # - destroy-environment
       # Here's where you will add some code to rollback on failure  
 
   cleanup:
@@ -422,6 +423,7 @@ jobs:
       - run:
           name: Destroy the previous S3 bucket and CloudFormation stack.
           command: |
+            pwd
             OldWorkflowID=$(cat ~/project/OldWorkflowID.txt)
             echo OldWorkflowID: "${OldWorkflowID}"
 
@@ -456,22 +458,22 @@ workflows:
       #     requires: [build-backend]
       # - scan-frontend:
       #     requires: [build-frontend]
-      - deploy-infrastructure: 
+      # - deploy-infrastructure: 
           # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-          filters:
-            branches:
-              only: [master]
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
-      - run-migrations:
-          requires: [configure-infrastructure]
-      - deploy-frontend:
-          requires: [run-migrations]
-      - deploy-backend:
-          requires: [run-migrations]
-      - smoke-test:
-          requires: [deploy-backend, deploy-frontend]
+      #     filters:
+      #       branches:
+      #         only: [master]
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
+      # - deploy-frontend:
+      #     requires: [run-migrations]
+      # - deploy-backend:
+      #     requires: [run-migrations]
+      # - smoke-test:
+      #     requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
-          requires: [smoke-test]
+          # requires: [smoke-test]
       - cleanup:
           requires: [cloudfront-update]
