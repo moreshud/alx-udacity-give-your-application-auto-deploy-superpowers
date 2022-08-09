@@ -385,7 +385,7 @@ jobs:
             yum install -y gzip
             yum install -y tar
       - run:
-          name: Get old WorkID and persist it
+          name: Get old WorkflowID and persist it
           command: |
             aws cloudformation list-exports \
               --query "Exports[?Name==\`WorkflowID\`].Value" \
@@ -409,20 +409,29 @@ jobs:
 
   cleanup:
     docker:
-      - image: cimg/base:stable
+      - image: amazon/aws-cli
     steps:
       - checkout
-      - install_awscli
+      - run:
+          name: Install dependency
+          command:
+            yum install -y gzip
+            yum install -y tar
       - attach_workspace:
           at: ~/
       - run:
           name: Destroy the previous S3 bucket and CloudFormation stack.
           command: |
-            pwd
             OldWorkflowID=$(cat ~/project/OldWorkflowID.txt)
             echo OldWorkflowID: "${OldWorkflowID}"
+
+            # Fetch the stack names          
+            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+              --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
+            echo Stack names: "${STACKS[@]}
     
-            if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
+            # if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
+            if [[ "${STACKS[@]}" =~ "${OldWorkID}" ]]
             then
               echo "-------------------- Start Cleanup: Deleting s3 & stack in progress ... --------------------"
               aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
@@ -437,18 +446,18 @@ jobs:
 workflows:
   default:
     jobs:
-      - build-frontend
-      - build-backend
-      - test-frontend:
-          requires: [build-frontend]
-      - test-backend:
-          requires: [build-backend]
-      - scan-backend:
-          requires: [build-backend]
-      - scan-frontend:
-          requires: [build-frontend]
+      # - build-frontend
+      # - build-backend
+      # - test-frontend:
+      #     requires: [build-frontend]
+      # - test-backend:
+      #     requires: [build-backend]
+      # - scan-backend:
+      #     requires: [build-backend]
+      # - scan-frontend:
+      #     requires: [build-frontend]
       - deploy-infrastructure: 
-          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
             branches:
               only: [master]
@@ -462,9 +471,7 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update
-      # # - cloudfront-update:
-      # #     requires: [smoke-test]
-      # - cleanup
-      # # - cleanup:
-      # #     requires: [cloudfront-update]
+      - cloudfront-update:
+          requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]
