@@ -382,6 +382,11 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
+          name: Install dependency
+          command:
+            yum install -y gzip
+            yum install -y tar
+      - run:
           name: Install dependencies & save old workflow id to kvdb.io
           command: |
             pwd
@@ -416,6 +421,7 @@ jobs:
       - run:
           name: Destroy the previous S3 bucket and CloudFormation stack.
           command: |
+            pwd
             OldWorkflowID=$(cat ~/project/OldWorkflowID.txt)
             echo OldWorkflowID: "${OldWorkflowID}"
     
