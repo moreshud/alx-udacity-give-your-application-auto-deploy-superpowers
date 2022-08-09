@@ -435,31 +435,31 @@ jobs:
             # if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${oldWorkflowID}" ]]
             if [[ "${STACKS[@]}" =~ "${oldWorkflowID}" ]]
             then
-              echo "-------------------- Start Cleanup: Deleting s3 & stack in progress ... --------------------"
+              echo "-------------------- Start Cleanup: Deleting S3 & its stack in progress 0%... --------------------"
               aws s3 rm "s3://udapeople-${oldWorkflowID}" --recursive
               aws cloudformation delete-stack --stack-name "udapeople-backend-${oldWorkflowID}"
               aws cloudformation delete-stack --stack-name "udapeople-frontend-${oldWorkflowID}"
-              echo "-------------------- [DELETED CONFIMED] --------------------"              
+              echo "-------------------- [DELETED CONFIRMED! 100%] --------------------"              
             else
-              echo "-------------------- CLEANUP FAILED --------------------"
+              echo "-------------------- CLEANUP FAILED! --------------------"
             fi
             
-
+            
 workflows:
   default:
     jobs:
-      - build-frontend
-      - build-backend
-      - test-frontend:
-          requires: [build-frontend]
-      - test-backend:
-          requires: [build-backend]
-      - scan-backend:
-          requires: [build-backend]
-      - scan-frontend:
-          requires: [build-frontend]
+      # - build-frontend
+      # - build-backend
+      # - test-frontend:
+      #     requires: [build-frontend]
+      # - test-backend:
+      #     requires: [build-backend]
+      # - scan-backend:
+      #     requires: [build-backend]
+      # - scan-frontend:
+      #     requires: [build-frontend]
       - deploy-infrastructure: 
-          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
             branches:
               only: [master]
@@ -473,7 +473,7 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
-      # - cleanup:
-      #     requires: [cloudfront-update]
+      - cloudfront-update:
+          requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]
