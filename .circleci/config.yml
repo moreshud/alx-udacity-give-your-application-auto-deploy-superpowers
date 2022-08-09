@@ -424,6 +424,7 @@ jobs:
           name: Destroy the previous S3 bucket and CloudFormation stack.
           command: |
             pwd
+            cat ~/project/OldWorkflowID.txt
             OldWorkflowID=$(cat ~/project/OldWorkflowID.txt)
             echo OldWorkflowID: "${OldWorkflowID}"
 
@@ -433,7 +434,7 @@ jobs:
             echo Stack names: "${STACKS[@]}
     
             # if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
-            if [[ "${STACKS[@]}" =~ "${OldWorkID}" ]]
+            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
               echo "-------------------- Start Cleanup: Deleting s3 & stack in progress ... --------------------"
               aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
