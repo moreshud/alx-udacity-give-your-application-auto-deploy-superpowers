@@ -404,10 +404,10 @@ jobs:
               --stack-name InitialStack
 
             echo Current Workflow ID: "${CIRCLE_WORKFLOW_ID:0:7}"
-      # - persist_to_workspace:
-      #     root: ~/
-      #     paths:
-      #       - project/oldWorkflowID.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/oldWorkflowID.txt
       # Here's where you will add some code to rollback on failure  
 
   cleanup:
