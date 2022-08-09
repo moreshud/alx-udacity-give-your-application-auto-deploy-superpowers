@@ -385,9 +385,8 @@ jobs:
             export OLD_WORKFLOW_ID=$(aws cloudformation list-exports \
               --query "Exports[?Name==\`WorkflowID\`].Value" \
               --no-paginate --output text)
-            echo $OLD_WORKFLOW_ID >> OldWorkflowID.txt
-            pwd
-            cat OldWorkflowID.txt
+            echo $OLD_WORKFLOW_ID >> ~/project/OldWorkflowID.txt
+            cat ~/project/OldWorkflowID.txt
       - run:
           name: Update cloudfront distribution
           command: |
@@ -397,6 +396,10 @@ jobs:
               --stack-name InitialStack
 
             echo Current Workflow ID: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/oldWorkflowID.txt
       # Here's where you will add some code to rollback on failure  
 
   cleanup:
@@ -410,8 +413,7 @@ jobs:
       - run:
           name: Destroy the previous S3 bucket and CloudFormation stack.
           command: |
-            pwd
-            OldWorkflowID=$(cat OldWorkflowID.txt)
+            OldWorkflowID=$(cat ~/project/OldWorkflowID.txt)
             echo OldWorkflowID: "${OldWorkflowID}"
     
             if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
